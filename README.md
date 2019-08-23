@@ -1,5 +1,4 @@
 # notes
-# add newfile
 echo "# notes" >> README.md
 git init
 git add README.md
