@@ -1,0 +1,3 @@
+﻿  sort2019.cpp
+c:\users\zhangranran\source\repos\interview\interview\sort2019.cpp(282): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+  Interview.vcxproj -> C:\Users\zhangranran\source\repos\Interview\Debug\Interview.exe
