@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 // https://blog.csdn.net/hellozhxy/article/details/79911867
@@ -216,7 +217,7 @@ void MergeSort(int arr[], int begin, int end) {
  * 最好情况： O(NlogN)
  * 最差情况： O(N^2)
  * 排序方式：In-Place
- * 空间复杂度： O(n)
+ * 空间复杂度： O(1)
  * 稳定性： 不稳定
  */
 int partition(int arr[], int start, int end) {
@@ -253,21 +254,211 @@ void QuickSort(int arr[], int start, int end) {
 		QuickSort(arr, pos + 1, end);
 	}
 }
-// 7、堆排序
-void HeapSort(int arr[], int len) {
 
+/************************************
+ * 7、堆排序
+ * 是否比较排序： 比较排序
+ * 平均时间复杂度： O（NlogN）
+ * 最好情况： O(NlogN)
+ * 最差情况： O(NlogN)
+ * 排序方式：In-Place
+ * 空间复杂度： O(1)
+ * 稳定性： 不稳定
+ */
+// 当前节点 i
+// 左子节点 2*i + 1
+// 右子节点 2*i + 2
+// 父节点 （i - 1）/2
+// 最后一个非叶子节点：(len -1)/2
+// 构建大顶堆
+void HeadAdjust(int arr[], int i, int len) {
+	int std = arr[i];
+	while (2 * i + 1 < len) {
+		int iMax = 2 * i + 1;
+		if ((2 * i + 2 < len) && (arr[2 * i + 1] < arr[2 * i + 2])) {
+			iMax = 2 * i + 2;
+		}
+		if (arr[iMax] > std) {
+			arr[i] = arr[iMax];
+			i = iMax;
+			continue;
+		}
+		break;
+	}
+	arr[i] = std;
 }
+void HeapSort(int arr[], int len) {
+	if ((NULL == arr) || (len < 2)) {
+		return;
+	}
+	// 构建大顶堆
+	for (int i = (len - 1) / 2; i >= 0; i--) {
+ 		HeadAdjust(arr, i, len);
+	}
+	for (int j = len - 1; j > 0; j--) {
+		swap(arr[0], arr[j]);
+		HeadAdjust(arr, 0, j);
+	}
+}
+/************************************
+ * 8、计数排序
+ * 是否比较排序： 非比较排序
+ * 平均时间复杂度： O（N+K）（输入N个0-K之间的数字）
+ * 最好情况： O(N+K)
+ * 最差情况： O(N+K)
+ * 排序方式：Out-Place
+ * 空间复杂度： O(K)
+ * 稳定性： 稳定
+*/
 // 8、计数排序
 void CountingSort(int arr[], int len) {
-
+	if ((NULL == arr) || (len < 2)) {
+		return;
+	}
+	int max = arr[0];
+	int min = arr[0];
+	for (int i = 0; i < len; i++) {
+		if (arr[i] < min) {
+			min = arr[i];
+		}
+		if (arr[i] > max) {
+			max = arr[i];
+		}
+	}
+	if (max == min) {
+		return;
+	}
+	int* bucket = new int[max - min + 1];
+	memset(bucket, 0, sizeof(int) * (max - min + 1));
+	int bias = min - 0;
+	for (int i = 0; i < len; i++) {
+		bucket[arr[i] - bias] += 1;
+	}
+	int index = 0;
+	int i = 0;
+	while (i < max - min + 1) {
+		if (bucket[i] > 0) {
+			arr[index++] = i + bias;
+			bucket[i] -= 1;
+		} else {
+			i++;
+		}
+		
+	}
+	delete[] bucket;
+	bucket = NULL;
 }
-// 9、桶排序
-void BucketSort(int arr[], int len) {
 
+/********************************
+ * 9、桶排序
+ * 是否比较排序： 非比较排序
+ * 平均时间复杂度： O（N+K）（输入N个0-K之间的数字）
+ * 最好情况： O(N+K)
+ * 最差情况： O(N+K)
+ * 排序方式：Out-Place
+ * 空间复杂度： O(K)
+ * 稳定性： 稳定
+ */
+// 
+void BucketSort(int arr[], int len, int bucket_size) {
+	if ((NULL == arr) || (len < 2)) {
+		return;
+	}
+	// 统计输入范围
+	int max = arr[0];
+	int min = arr[0];
+	for (int i = 0; i < len; i++) {
+		if (arr[i] > max) {
+			max = arr[i];
+		}
+		if (arr[i] < min) {
+			min = arr[i];
+		}
+	}
+
+	// 初始化数组
+	int range = max - min + 1;
+	int bucket_count = range / bucket_size + 1;
+	int** buckets = new int*[bucket_count];
+	for (int i = 0; i < bucket_count; i++) {
+		buckets[i] = new int[bucket_size];
+		memset(buckets[i], 0, sizeof(int) * bucket_size);
+	}
+
+	// 填充数组
+	for (int i = 0; i < len; i++) {
+		int row = (arr[i] - min) / bucket_size;
+		int col = (arr[i] - min) % bucket_size;
+ 		buckets[(arr[i] - min) / bucket_size][(arr[i] - min) % bucket_size] += 1;
+	}
+
+	// 排序结果
+	int index = 0;
+	for (int i = 0; i < bucket_count; i++) {
+		int j = 0;
+		while (j < bucket_size) {
+			if (buckets[i][j] > 0) {
+				arr[index++] = bucket_size * i + j + min;
+				buckets[i][j] --;
+			} else {
+				j++;
+			}
+		}
+	}
+	// 删除动态数组
+	for (int i = 0; i < bucket_count; i++) {
+		delete[] buckets[i];
+		buckets[i] = NULL;
+	}
+	delete[] buckets;
+	buckets = NULL;
 }
-// 10、基数排序
+
+/********************************
+* 10、基数排序
+* 是否比较排序： 非比较排序
+* 平均时间复杂度： O（N*K）（K为数组中最大数的位数）
+* 最好情况： O(N*K)
+* 最差情况： O(N*K)
+* 排序方式：Out-Place
+* 空间复杂度： O(K)
+* 稳定性： 稳定
+*/
 void RadixSort(int arr[], int len) {
-
+	if ((NULL == arr) || (len < 2)) {
+		return;
+	}
+	// 寻找最大值
+	int max = arr[0];
+	for (int i = 0; i < len; i++) {
+		if (arr[i] > max) {
+			max = arr[i];
+		}
+	}
+	// 算出位数
+	int iDigit = 0;
+	while (max > 0) {
+		max /= 10;
+		iDigit++;
+	}
+	// 排序,借助vector数据结构
+	int radix = 1;
+	for (int i = 0; i < iDigit; i++) {
+		vector<vector<int>> temp_vec;
+		for (int j = 0; j < 10; j++) {
+			temp_vec.push_back(vector<int>());
+		}
+		for (int j = 0; j < len; j++) {
+			temp_vec[arr[j] / radix % 10].push_back(arr[j]);
+		}
+		int index = 0;
+		for (int j = 0; j < 10; j++) {
+			for (int k = 0; k < temp_vec[j].size(); k++) {
+				arr[index++] = temp_vec[j][k];
+			}
+		}
+		radix *= 10;
+	}
 }
 // 输出
 void output(int arr[], int len) {
@@ -305,7 +496,11 @@ int main(int argc, char** argv) {
 		// InsertionSortV2(arr, sizeof(arr) / sizeof(arr[0]));
 		// ShellSort(arr, sizeof(arr) / sizeof(arr[0]));
 		// MergeSort(arr, 0, sizeof(arr) / sizeof(arr[0]) -1);
-		QuickSort(arr, 0, sizeof(arr) / sizeof(arr[0]) - 1);
+		// QuickSort(arr, 0, sizeof(arr) / sizeof(arr[0]) - 1);
+		// HeapSort(arr, sizeof(arr) / sizeof(arr[0]));
+		// CountingSort(arr, sizeof(arr) / sizeof(arr[0]));
+		// BucketSort(arr, sizeof(arr) / sizeof(arr[0]), 5);
+		RadixSort(arr, sizeof(arr) / sizeof(arr[0]));
 		// 输出排序后结果
 		std::cout << "sorted array: ";
 		output(arr, sizeof(arr) / sizeof(arr[0]));
